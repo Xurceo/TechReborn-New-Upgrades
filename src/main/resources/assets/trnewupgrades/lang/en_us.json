@@ -1,0 +1,16 @@
+{
+    "item.trnewupgrades.transformermk2_upgrade": "Transformer MK2 Upgrade",
+    "item.trnewupgrades.transformerinfinite_upgrade": "Transformer MAX Upgrade",
+    "item.trnewupgrades.overclockermk2_upgrade": "Overclocker MK2 Upgrade",
+    "item.trnewupgrades.overclockermk3_upgrade": "Overclocker MK3 Upgrade",
+    "item.trnewupgrades.stack_upgrade": "Stack Upgrade",
+    "trnewupgrades.message.info.item.trnewupgrades.overclockermk2_upgrade": "Decrease crafting time at the cost of more energy used per tick",
+    "trnewupgrades.message.info.item.trnewupgrades.overclockermk3_upgrade": "Decrease crafting time at the cost of more energy used per tick",
+    "trnewupgrades.message.info.item.trnewupgrades.transformermk2_upgrade": "Increase energy tier by 2",
+    "trnewupgrades.message.info.item.trnewupgrades.transformerinfinite_upgrade": "Increase energy tier to INFINITE",
+    "trnewupgrades.message.info.item.trnewupgrades.stack_upgrade": "Process up to a full stack at once with normal per-item craft time",
+    "itemGroup.trnewupgrades.item_group": "Tech Reborn New Upgrades",
+    "trnewupgrades.tooltip.stack_info": "Hold Shift for more info",
+    "trnewupgrades.tooltip.upgrade.speed_increase": "Time decrease",
+    "trnewupgrades.tooltip.upgrade.energy_increase": "Energy increase"
+}

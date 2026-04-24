@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import trnewupgrades.init.TRNUContent;
 
 public class TechRebornNewUpgrades implements ModInitializer {
 	public static final String MOD_ID = "trnewupgrades";
@@ -19,6 +20,8 @@ public class TechRebornNewUpgrades implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
-		LOGGER.info("Hello Fabric world!");
+		LOGGER.info("Init start!");
+		TRNUContent.register();
+		LOGGER.info("TechRebornNewUpgrades setup done!");
 	}
 }

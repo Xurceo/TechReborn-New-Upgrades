@@ -1,0 +1,17 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "group": "transformerinfinite_upgrade",
+    "pattern": [
+        " T ",
+        "ODO",
+        " T "
+    ],
+    "key": {
+        "T": "trnewupgrades:transformermk2_upgrade",
+        "O": "techreborn:lapotronic_orb",
+        "D": "techreborn:data_storage_core"
+    },
+    "result": {
+        "id": "trnewupgrades:transformerinfinite_upgrade"
+    }
+}

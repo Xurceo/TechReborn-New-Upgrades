@@ -1,7 +1,11 @@
 plugins {
 	id 'net.fabricmc.fabric-loom' version "${loom_version}"
 	id 'maven-publish'
+	id "me.modmuss50.mod-publish-plugin" version "2.0.0-beta.1"
 }
+
+
+def ENV = System.getenv()
 
 version = project.mod_version
 group = project.maven_group
@@ -12,6 +16,10 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+	mavenLocal()
+	mavenCentral()
+	maven { url 'https://jitpack.io' }
+	maven { url "https://cursemaven.com" }
 }
 
 loom {
@@ -35,6 +43,8 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	
+    implementation "curse.maven:reborncore-237903:7920012"
+    implementation "curse.maven:techreborn-233564:7920013"
 }
 
 processResources {
@@ -67,19 +77,97 @@ jar {
 	}
 }
 
+tasks.named("runClient", JavaExec).configure {
+	jvmArgs(
+		"-Dmixin.debug.export=true",
+		"-Dmixin.debug.verbose=true",
+		"-Dmixin.dumpTargetOnFailure=true"
+	)
+}
+
 // configure the maven publication
 publishing {
 	publications {
-		create("mavenJava", MavenPublication) {
-			from components.java
-		}
-	}
+        mavenJava(MavenPublication) {
+            groupId    = "io.github.Xurceo"
+            artifactId = project.name
+            version    = project.version
+
+            from components.java
+        }
+    }
 
 	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
 		// Add repositories to publish to here.
 		// Notice: This block does NOT have the same function as the block in the top level.
 		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+		// retrieving dependencies.maven 
+			maven {
+            name = "GitHubPackages"
+            url  = uri("https://maven.pkg.github.com/xurceo/TechReborn-New-Upgrades")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+	}
+}
+
+publishMods {
+	changelog = providers.environmentVariable("CHANGELOG").orElse("No changelog provided")
+    version = project.version
+	type = providers.environmentVariable("RELEASE_CHANNEL").orElse("release").map {it == "release" ? STABLE : BETA }
+    modLoaders.add("fabric")
+	dryRun = providers.environmentVariable("CURSEFORGE_API_KEY").getOrNull() == null
+
+    def options = curseforgeOptions {
+        accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
+        minecraftVersions.add("26.1.2")
+        minecraftVersions.add("26.1.1")
+        minecraftVersions.add("26.1")
+
+        requires {
+            slug = "fabric-api"
+        }
+
+		requires {
+			slug = "techreborn"
+		}
+    }
+
+    def mrOptions = modrinthOptions {
+        accessToken = providers.environmentVariable("MODRINTH_API_KEY")
+        minecraftVersions.add("26.1.2")
+        minecraftVersions.add("26.1.1")
+        minecraftVersions.add("26.1")
+
+        requires {
+            slug = "fabric-api"
+        }
+
+		requires {
+			slug = "techreborn"
+		}
+    }
+
+	curseforge("curseforgeTechRebornNewUpgrades") {
+        from options
+        projectId = "237903"
+        file = jar.archiveFile
+		displayName = "Tech Reborn New Upgrades ${project.version}"
+    }
+
+    modrinth("modrinthTechRebornNewUpgrades") {
+        from mrOptions
+        projectId = "3eMENr4V"
+        file = jar.archiveFile
+    }
+
+	github {
+		file = jar.archiveFile
+		repository = providers.environmentVariable("GITHUB_REPOSITORY").orElse("dryrun")
+		accessToken = providers.environmentVariable("GITHUB_TOKEN")
+		commitish = providers.environmentVariable("GITHUB_REF_NAME").orElse("dryrun")
 	}
 }

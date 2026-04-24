@@ -1,0 +1,18 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "group": "overclockermk3_upgrade",
+    "pattern": [
+        " O ",
+        "CAC",
+        " L "
+    ],
+    "key": {
+        "O": "trnewupgrades:overclockermk2_upgrade",
+        "C": "techreborn:superconductor_cable",
+        "A": "techreborn:data_storage_chip",
+        "L": "techreborn:lapotronic_orb"
+    },
+    "result": {
+        "id": "trnewupgrades:overclockermk3_upgrade"
+    }
+}

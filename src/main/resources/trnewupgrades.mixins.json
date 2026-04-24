@@ -3,7 +3,10 @@
 	"package": "trnewupgrades.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"ExampleMixin"
+		"MachineBaseBlockEntityMixin",
+		"RecipeCrafterMixin",
+		"ElectricFurnaceBlockEntityMixin",
+		"RollingMachineBlockEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

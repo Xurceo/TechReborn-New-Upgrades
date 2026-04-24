@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "trnewupgrades:item/upgrade/transformermk2_upgrade"
+  }
+}
