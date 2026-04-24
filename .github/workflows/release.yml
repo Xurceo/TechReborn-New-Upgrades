@@ -6,7 +6,6 @@ on:
         description: 'Release channel'
         required: true
         default: 'release'
-		
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -26,7 +25,6 @@ jobs:
         with:
           context: changelog
           workflow_id: release.yml
-		  
       - name: Build
         run: ./gradlew build
       - name: Publish to GitHub Packages
