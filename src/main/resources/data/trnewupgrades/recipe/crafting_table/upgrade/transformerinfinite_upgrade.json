@@ -3,13 +3,13 @@
     "group": "transformerinfinite_upgrade",
     "pattern": [
         " T ",
-        "ODO",
+        "CDC",
         " T "
     ],
     "key": {
         "T": "trnewupgrades:transformermk2_upgrade",
-        "O": "techreborn:lapotronic_orb",
-        "D": "techreborn:data_storage_core"
+        "D": "techreborn:data_storage_core",
+        "C": "techreborn:superconductor_cable"
     },
     "result": {
         "id": "trnewupgrades:transformerinfinite_upgrade"

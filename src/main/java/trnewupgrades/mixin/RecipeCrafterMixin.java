@@ -223,7 +223,7 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
             setCurrentRecipe(recipe);
             int baseNeededTicks = Math.max((int) (currentRecipe.time() * (1.0 - getSpeedMultiplier())), 1);
             craftsPerOperation = calculateCraftsPerOperation(currentRecipe);
-            if (isProcessingStack() && getSpeedMultiplier() >= 0.999999D) {
+            if (isProcessingStack() && getSpeedMultiplier() >= 0.99D) {
                 this.currentNeededTicks = 1;
             } else {
                 this.currentNeededTicks = baseNeededTicks * craftsPerOperation;

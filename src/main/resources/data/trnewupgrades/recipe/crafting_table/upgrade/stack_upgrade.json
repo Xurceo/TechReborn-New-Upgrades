@@ -2,15 +2,16 @@
     "type": "minecraft:crafting_shaped",
     "group": "stack_upgrade",
     "pattern": [
-        " O ",
-        "CMC",
-        " D "
+        "CFC",
+        "HOH",
+        "CLC"
     ],
     "key": {
-        "O": "techreborn:overclocker_upgrade",
-        "C": "techreborn:insulated_gold_cable",
-        "M": "techreborn:industrial_machine_frame",
-        "D": "techreborn:data_storage_chip"
+        "O": "techreborn:computer_cube",
+        "C": "techreborn:superconductor_cable",
+        "H": "techreborn:helium_coolant_cell_360k",
+        "L": "techreborn:lapotronic_orb",
+        "F": "techreborn:fusion_coil"
     },
     "result": {
         "id": "trnewupgrades:stack_upgrade"

@@ -4,13 +4,12 @@
     "pattern": [
         " O ",
         "CAC",
-        " L "
+        " O "
     ],
     "key": {
         "O": "techreborn:overclocker_upgrade",
         "C": "techreborn:insulated_gold_cable",
-        "A": "techreborn:advanced_circuit",
-        "L": "techreborn:lapotron_crystal"
+        "A": "techreborn:advanced_circuit"
     },
     "result": {
         "id": "trnewupgrades:overclockermk2_upgrade"

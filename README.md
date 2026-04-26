@@ -20,6 +20,9 @@ An addon mod for Tech Reborn that adds new machine upgrades focused on speed, po
 - Goal: expand Tech Reborn machine tuning beyond default upgrade limits.
 - Performance focus: choose between faster processing, higher power throughput, or stack-based operations.
 
+## Credits
+- Some code adapted from [TechReborn](https://github.com/TechReborn/TechReborn) (MIT)
+
 ## Support the Project
 
 If this mod helps your pack or server, you can support development here:

@@ -4,13 +4,12 @@
     "pattern": [
         " O ",
         "CAC",
-        " L "
+        " O "
     ],
     "key": {
         "O": "trnewupgrades:overclockermk2_upgrade",
-        "C": "techreborn:superconductor_cable",
-        "A": "techreborn:data_storage_chip",
-        "L": "techreborn:lapotronic_orb"
+        "C": "techreborn:insulated_hv_cable",
+        "A": "techreborn:data_storage_chip"
     },
     "result": {
         "id": "trnewupgrades:overclockermk3_upgrade"
