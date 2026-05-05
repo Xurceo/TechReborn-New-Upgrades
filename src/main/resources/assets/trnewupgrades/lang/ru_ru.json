@@ -8,7 +8,7 @@
   "trnewupgrades.message.info.item.trnewupgrades.overclockermk3_upgrade": "Уменьшает скорость крафта, но увеличивает потребление энергии в тик",
   "trnewupgrades.message.info.item.trnewupgrades.transformermk2_upgrade": "Повышает энергетический уровень на 2",
   "trnewupgrades.message.info.item.trnewupgrades.transformerinfinite_upgrade": "Повышает энергетический уровень до БЕСКОНЕЧНОГО",
-  "trnewupgrades.message.info.item.trnewupgrades.stack_upgrade": "Обрабатывает до полного стека за раз с обычным временем крафта за предмет",
+  "trnewupgrades.message.info.item.trnewupgrades.stack_upgrade": "Обрабатывает до полного стека за раз с обычным временем крафта за предмет\nСинергирует с улучшениями ускорителя\nБазовый ускоритель увеличивает скорость в 5 раз, MK2 в 10 раз\nУскоритель MK3 делает крафты мгновенными",
   "itemGroup.trnewupgrades.item_group": "Tech Reborn New Upgrades",
   "trnewupgrades.tooltip.stack_info": "Удерживайте Shift для получения дополнительной информации"
 }

@@ -14,6 +14,7 @@ An addon mod for Tech Reborn that adds new machine upgrades focused on speed, po
 	- Increases machine energy tier to INFINITE.
 - Stack Upgrade
 	- Processes up to a full stack in one operation while keeping normal per-item crafting time.
+	- Synergizes with overclocker upgrades. Base overclocker upgrade makes crafts 5x faster, overclocker MK2 makes 10x faster and overclocker MK3 makes crafts instant.
 
 ## Overview
 

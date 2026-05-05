@@ -8,7 +8,7 @@
     "trnewupgrades.message.info.item.trnewupgrades.overclockermk3_upgrade": "Decrease crafting time at the cost of more energy used per tick",
     "trnewupgrades.message.info.item.trnewupgrades.transformermk2_upgrade": "Increase energy tier by 2",
     "trnewupgrades.message.info.item.trnewupgrades.transformerinfinite_upgrade": "Increase energy tier to INFINITE",
-    "trnewupgrades.message.info.item.trnewupgrades.stack_upgrade": "Process up to a full stack at once with normal per-item craft time",
+    "trnewupgrades.message.info.item.trnewupgrades.stack_upgrade": "Process up to a full stack at once with normal per-item craft time\nSynergizes with Overclocker Upgrades\nBase overclocker increases speed by 5x, MK2 by 10x\nOverclocker MK3 makes crafts instant",
     "itemGroup.trnewupgrades.item_group": "Tech Reborn New Upgrades",
     "trnewupgrades.tooltip.stack_info": "Hold Shift for more info",
     "trnewupgrades.tooltip.upgrade.speed_increase": "Time decrease",

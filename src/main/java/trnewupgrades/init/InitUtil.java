@@ -43,9 +43,7 @@ public class InitUtil {
 
 	public static void registerItem(Item item) {
 		Validate.isTrue(objIdentMap.containsKey(item));
-		TechRebornNewUpgrades.LOGGER.info("Items contain keys");
 		registerItem(item, (Identifier)objIdentMap.get(item));
-		TechRebornNewUpgrades.LOGGER.info("Items registered");
 	}
 
 	public static void registerItem(Item item, Identifier name) {

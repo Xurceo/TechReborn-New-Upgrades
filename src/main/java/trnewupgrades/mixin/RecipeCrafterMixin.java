@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.crafting.RecipeUtils;
 import reborncore.common.crafting.SizedIngredient;
@@ -21,42 +22,19 @@ import reborncore.common.recipes.RecipeCrafter;
 import reborncore.common.util.ItemUtils;
 import reborncore.common.util.RebornInventory;
 import trnewupgrades.api.ProcessingStackAccessor;
+import trnewupgrades.util.UpgradeUtils;
 
 @Mixin(value = RecipeCrafter.class, remap = false)
 public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
-
-    // Base overrides and methods
-    @Unique
-    private boolean processingStack = false;
-
-    @Inject(method = "<init>", at = @At("TAIL"), remap = false)
-    private void initReset(CallbackInfo ci) {
-        resetProcessingStack();
-    }
-
-    @Unique
-    public void resetProcessingStack() {
-        this.processingStack = false;
-    }
-
-    @Override
-    public boolean isProcessingStack() {
-        return parentUpgradeHandler
-                .map(handler -> handler instanceof ProcessingStackAccessor accessor ? accessor.isProcessingStack() : processingStack)
-                .orElse(processingStack);
-    }
-
-    @Override
-    public void setProcessingStack(boolean value) {
-        processingStack = value;
-        parentUpgradeHandler.ifPresent(handler -> {
-            if (handler instanceof ProcessingStackAccessor accessor) {
-                accessor.setProcessingStack(value);
-            }
-        });
-    }
-
-    // Crafting logic change
+    /**
+     * Mixin for RecipeCrafter: adds processing-stack behavior, computes
+     * `craftsPerOperation` at recipe selection, and ensures `completeCraft`
+     * uses the precomputed value to avoid races.
+     */
+    
+    /* ----------------
+     * Shadows
+     * ---------------- */
     @Shadow(remap = false)
     public Optional<IUpgradeHandler> parentUpgradeHandler;
 
@@ -108,11 +86,48 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     @Shadow(remap = false)
     public abstract double getSpeedMultiplier();
 
+    // Unique fields
+    @Unique
+    private boolean processingStack = false;
+
     /**
-     * @author
-     * Xurceo
-     * @reason
-     * Overwritten method to support crafting entire stack (or max)
+     * Resets the local processing flag after construction.
+     */
+    @Inject(method = "<init>", at = @At("TAIL"), remap = false)
+    private void initReset(CallbackInfo ci) {
+        resetProcessingStack();
+    }
+
+    @Unique
+    public void resetProcessingStack() {
+        this.processingStack = false;
+    }
+
+    /**
+     * Returns whether the crafter should process stacks.
+     */
+    @Override
+    public boolean isProcessingStack() {
+        return parentUpgradeHandler
+                .map(handler -> handler instanceof ProcessingStackAccessor accessor ? accessor.isProcessingStack() : processingStack)
+                .orElse(processingStack);
+    }
+
+    /**
+     * Updates the local flag and propagates it to the parent upgrade handler.
+     */
+    @Override
+    public void setProcessingStack(boolean value) {
+        processingStack = value;
+        parentUpgradeHandler.ifPresent(handler -> {
+            if (handler instanceof ProcessingStackAccessor accessor) {
+                accessor.setProcessingStack(value);
+            }
+        });
+    }
+
+    /**
+     * Resets crafter state and clears stack-processing bookkeeping.
      */
     @Overwrite(remap = false)
     protected void resetCrafter() {
@@ -125,6 +140,12 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     @Unique
     private int craftsPerOperation = 1;
 
+    /**
+     * Calculates how many crafts can be completed in one operation.
+     *
+     * @param recipe the recipe to evaluate for stack-processing capacity
+     * @return the number of crafts that can execute in one operation
+     */
     @Unique
     private int calculateCraftsPerOperation(RebornRecipe recipe) {
         if (!isProcessingStack()) {
@@ -188,11 +209,35 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         return Math.max(crafts, 1);
     }
 
+    /**
+     * Returns whether the recipe outputs match the configured output slots.
+     *
+     * @param outputs the recipe outputs to validate
+     * @return true if all outputs can fit in the output slot map
+     */
     @Unique
     private boolean isItemRecipe(List<ItemStack> outputs) {
         return outputSlots != null && outputs.size() <= outputSlots.length;
     }
 
+    /**
+     * Resolves the live overclocker tier for stack-processing timing.
+     *
+     * @return the highest overclocker tier, or 0 if unavailable
+     */
+    @Unique
+    private int getStackOverclockerTier() {
+        if (!isProcessingStack() || !(blockEntity instanceof MachineBaseBlockEntity machineBase)) {
+            return 0;
+        }
+        return UpgradeUtils.getOverclockerTier(machineBase.getUpgradeInventory());
+    }
+
+    /**
+     * Synchronizes the local processing flag from the parent upgrade handler.
+     *
+     * @param ci callback from the entity update injection
+     */
     @Inject(method = "updateEntity", at = @At("HEAD"), remap = false)
     private void injectStackProcessing(CallbackInfo ci) {
         boolean stackProcessingNow = parentUpgradeHandler
@@ -205,10 +250,8 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     }
 
     /**
-     * @author
-     * Xurceo
-     * @reason
-     * Overwritten method to support crafting entire stack (or max)
+     * Overwrites recipe selection to cache crafts-per-operation and scale the
+     * recipe duration for stack processing.
      */
     @Overwrite(remap = false)
     public void updateCurrentRecipe() {
@@ -221,10 +264,16 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
             }
             // Sets the current recipe
             setCurrentRecipe(recipe);
-            int baseNeededTicks = Math.max((int) (currentRecipe.time() * (1.0 - getSpeedMultiplier())), 1);
             craftsPerOperation = calculateCraftsPerOperation(currentRecipe);
-            if (isProcessingStack() && getSpeedMultiplier() >= 0.99D) {
+            int baseNeededTicks = Math.max((int) (currentRecipe.time() * (1.0 - getSpeedMultiplier())), 1);
+
+            int stackTier = getStackOverclockerTier();
+            if (stackTier >= 3) {
                 this.currentNeededTicks = 1;
+            } else if (stackTier == 2) {
+                this.currentNeededTicks = Math.max((baseNeededTicks * craftsPerOperation) / 10, 1);
+            } else if (stackTier == 1) {
+                this.currentNeededTicks = Math.max((baseNeededTicks * craftsPerOperation) / 5, 1);
             } else {
                 this.currentNeededTicks = baseNeededTicks * craftsPerOperation;
             }
@@ -235,6 +284,12 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         resetCrafter();
     }
 
+    /**
+     * Checks whether every output can still fit in its assigned slot.
+     *
+     * @param outputs the recipe outputs to validate
+     * @return true if all outputs fit in their assigned slots
+     */
     @Unique
     private boolean canFitAllOutputs(final @NonNull List<ItemStack> outputs) {
         for (int i = 0; i < outputs.size(); i++) {
@@ -245,6 +300,11 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         return true;
     }
 
+    /**
+     * Inserts the crafted outputs into their configured slots.
+     *
+     * @param outputs the recipe outputs to insert
+     */
     @Unique
     private void insertOutputs(@NonNull List<ItemStack> outputs) {
         ArrayList<Integer> filledSlots = new ArrayList<>();
@@ -258,21 +318,15 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     }
 
     /**
-     * @author
-     * Xurceo
-     * @reason
-     * Overwritten method to support crafting entire stack (or max)
+     * Overwrites craft completion so multiple crafts can be completed atomically
+     * using the precomputed stack count.
      */
     @Overwrite(remap = false)
     protected void completeCraft() {
         final List<ItemStack> outputs = currentRecipe.outputs().stream().map(ItemStackTemplate::create).toList();
+        // Use the pre-calculated craftsPerOperation from updateCurrentRecipe.
+        // Do NOT re-evaluate here; the processingStack flag may have transient state.
         int craftsThisOperation = Math.max(craftsPerOperation, 1);
-        if (processingStack) {
-            craftsThisOperation = calculateCraftsPerOperation(currentRecipe);
-        }
-        else {
-            craftsThisOperation = 1;
-        }
         int crafted = 0;
         for (int i = 0; i < craftsThisOperation; i++) {
             if (!hasAllInputs(currentRecipe) || !canFitAllOutputs(outputs)) {
@@ -290,7 +344,6 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         if (crafted == 0) {
             return;
         }
-
         currentTickTime = 0;
     }
 }
