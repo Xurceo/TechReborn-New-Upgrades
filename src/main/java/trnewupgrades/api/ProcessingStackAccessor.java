@@ -11,4 +11,7 @@ public interface ProcessingStackAccessor {
     default void resetProcessingStack() {
         setProcessingStack(false);
     }
+
+    default void setCraftsPerOperation(int value) {
+    }
 }

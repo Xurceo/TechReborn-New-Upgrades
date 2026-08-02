@@ -6,7 +6,8 @@
 		"MachineBaseBlockEntityMixin",
 		"RecipeCrafterMixin",
 		"ElectricFurnaceBlockEntityMixin",
-		"RollingMachineBlockEntityMixin"
+		"RollingMachineBlockEntityMixin",
+		"RecyclerRecipeCrafterMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

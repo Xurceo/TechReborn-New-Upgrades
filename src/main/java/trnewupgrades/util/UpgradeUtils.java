@@ -40,4 +40,16 @@ public final class UpgradeUtils {
         var key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
         return "techreborn".equals(key.getNamespace()) && "overclocker_upgrade".equals(key.getPath());
     }
+
+    /**
+     * Checks whether the supplied upgrade inventory contains the STACK upgrade.
+     */
+    public static boolean hasStackUpgrade(Container upgradeInventory) {
+        for (int i = 0; i < upgradeInventory.getContainerSize(); i++) {
+            ItemStack stack = upgradeInventory.getItem(i);
+            if (stack.isEmpty()) continue;
+            if (stack.getItem() == TRNUContent.Upgrades.STACK.asItem()) return true;
+        }
+        return false;
+    }
 }

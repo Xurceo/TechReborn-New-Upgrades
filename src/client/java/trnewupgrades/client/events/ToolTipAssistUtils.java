@@ -15,8 +15,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.locale.Language;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
-import techreborn.config.TechRebornConfig;
-import techreborn.init.TRContent;
 import trnewupgrades.config.TRNUConfig;
 import trnewupgrades.init.TRNUContent;
 

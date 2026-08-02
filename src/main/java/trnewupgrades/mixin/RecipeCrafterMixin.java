@@ -143,6 +143,19 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     private int craftsPerOperation = 1;
 
     /**
+     * Sets the precomputed crafts-per-operation value used by the
+     * {@code completeCraft} overwrite. Exposed so subclasses of
+     * {@code RecipeCrafter} that override {@code updateCurrentRecipe}
+     * (e.g. the recycler) can still drive stack processing.
+     *
+     * @param value the number of crafts per operation
+     */
+    @Override
+    public void setCraftsPerOperation(int value) {
+        craftsPerOperation = value;
+    }
+
+    /**
      * Calculates how many crafts can be completed in one operation.
      *
      * @param recipe the recipe to evaluate for stack-processing capacity
@@ -151,7 +164,12 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     @Unique
     private int calculateCraftsPerOperation(RebornRecipe recipe) {
         if (!isProcessingStack()) {
-            return 1;
+            // Also allow stack-processing when a STACK upgrade is physically present
+            // in the machine's upgrade inventory even if the local flag wasn't set.
+            if (!(blockEntity instanceof MachineBaseBlockEntity machineBase)
+                    || !UpgradeUtils.hasStackUpgrade(machineBase.getUpgradeInventory())) {
+                return 1;
+            }
         }
         final List<ItemStack> outputs = new ArrayList<>();
         for (ItemStackTemplate template : recipe.outputs()) {
@@ -232,7 +250,12 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
      */
     @Unique
     private int getStackOverclockerTier() {
-        if (!isProcessingStack() || !(blockEntity instanceof MachineBaseBlockEntity machineBase)) {
+        if (!(blockEntity instanceof MachineBaseBlockEntity machineBase)) {
+            return 0;
+        }
+        // Only provide accelerated timings when either the processing flag is set
+        // or a STACK upgrade is actually present in the machine's upgrade slots.
+        if (!isProcessingStack() && !UpgradeUtils.hasStackUpgrade(machineBase.getUpgradeInventory())) {
             return 0;
         }
         return UpgradeUtils.getOverclockerTier(machineBase.getUpgradeInventory());

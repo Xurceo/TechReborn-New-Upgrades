@@ -70,9 +70,6 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 
 	// Unique fields
 	@Unique
-	private MachineBaseBlockEntity trnu$lastMachineBase;
-
-	@Unique
 	private SmeltingRecipe trnu$recipeAtTickStart;
 
 	@Unique
@@ -88,35 +85,63 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 	private boolean trnu$isProcessingStackDuringTick;
 
 	/**
-	 * Returns whether the furnace is currently processing stacks.
+	 * Returns the machine base represented by this furnace entity.
 	 *
-	 * @return true when the last captured machine base is processing stacks
+	 * @return the machine base used for upgrade inventory access
 	 */
 	@Unique
-	private boolean trnu$isCurrentlyProcessingStack() {
-		return trnu$lastMachineBase instanceof ProcessingStackAccessor accessor && accessor.isProcessingStack();
+	private MachineBaseBlockEntity trnu$getMachineBase() {
+		return (MachineBaseBlockEntity) (Object) this;
 	}
 
 	/**
-	 * Reads the live overclocker tier from the last captured machine base.
+	 * Returns whether stack processing is active, either via the processing
+	 * flag set by the STACK upgrade or by the presence of a STACK upgrade in
+	 * the machine's upgrade inventory.
+	 *
+	 * @return true when the furnace should process stacks
+	 */
+	@Unique
+	private boolean trnu$isStackProcessingActive() {
+		if (this instanceof ProcessingStackAccessor accessor && accessor.isProcessingStack()) {
+			return true;
+		}
+		return UpgradeUtils.hasStackUpgrade(trnu$getMachineBase().getUpgradeInventory());
+	}
+
+	/**
+	 * Returns whether the furnace is currently processing stacks.
+	 *
+	 * @return true when stack processing is active
+	 */
+	@Unique
+	private boolean trnu$isCurrentlyProcessingStack() {
+		return trnu$isStackProcessingActive();
+	}
+
+	/**
+	 * Reads the live overclocker tier from the machine's upgrade inventory.
 	 *
 	 * @return the highest detected overclocker tier, or 0 when unavailable
 	 */
 	@Unique
 	private int trnu$getLiveStackOverclockerTier() {
-		if (trnu$lastMachineBase != null) {
-			return UpgradeUtils.getOverclockerTier(trnu$lastMachineBase.getUpgradeInventory());
-		}
-		return 0;
+		return UpgradeUtils.getOverclockerTier(trnu$getMachineBase().getUpgradeInventory());
 	}
 
 	/**
-	 * Computes how many furnace crafts can happen in one operation.
+	 * Computes how many furnace crafts can happen in one operation. Stack
+	 * processing only kicks in when the STACK upgrade is active, mirroring the
+	 * gating used by {@code RecipeCrafterMixin}; otherwise a single craft per
+	 * operation is returned so the cook-time total is never scaled.
 	 *
 	 * @return the number of crafts that can run in a single operation
 	 */
 	@Unique
 	private int trnu$getStackCraftsPerOperation() {
+		if (!trnu$isStackProcessingActive()) {
+			return 1;
+		}
 		// Use the currentRecipe when calculating crafts-per-operation. Sometimes
 		// updateCurrentRecipe() runs outside of the tick context, so relying on
 		// the tick-start cached recipe (trnu$recipeAtTickStart) can be null.
@@ -245,11 +270,10 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 	 */
 	@Inject(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lreborncore/common/blockentity/MachineBaseBlockEntity;)V", at = @At("HEAD"), remap = false)
 	private void trnu$captureTickState(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity machineBase, CallbackInfo ci) {
-		trnu$lastMachineBase = machineBase;
 		trnu$recipeAtTickStart = currentRecipe;
 		trnu$cookTimeTotalAtTickStart = cookTimeTotal;
 		trnu$outputCountAtTickStart = inventory.getItem(1).getCount();
-		trnu$isProcessingStackDuringTick = machineBase instanceof ProcessingStackAccessor accessor && accessor.isProcessingStack();
+		trnu$isProcessingStackDuringTick = trnu$isStackProcessingActive();
 	}
 
 	/* ----------------
@@ -332,7 +356,7 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		if (level == null || level.isClientSide()) {
 			return;
 		}
-		if (machineBase == null || !(machineBase instanceof ProcessingStackAccessor accessor) || !accessor.isProcessingStack()) {
+		if (machineBase == null || !trnu$isStackProcessingActive()) {
 			return;
 		}
 		if (trnu$recipeAtTickStart == null || trnu$cookTimeTotalAtTickStart <= 0) {

@@ -69,7 +69,13 @@ public class TRNUContent {
         }),
         STACK((blockEntity, handler, stack) -> {
             PowerAcceptorBlockEntity powerAcceptor = null;
-            if (blockEntity instanceof ProcessingStackAccessor accessor){
+            // Prefer resolving the recipe crafter upgrade handler so we can
+            // set the processing flag on the object that actually controls
+            // recipe execution. Fallback to the blockEntity itself.
+            IUpgradeHandler targetHandler = resolveUpgradeTarget(blockEntity, handler);
+            if (targetHandler instanceof ProcessingStackAccessor handlerAccessor) {
+                handlerAccessor.processStack();
+            } else if (blockEntity instanceof ProcessingStackAccessor accessor) {
                 accessor.processStack();
             }
             if (blockEntity instanceof PowerAcceptorBlockEntity) {
