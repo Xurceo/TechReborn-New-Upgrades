@@ -1,5 +1,7 @@
 package trnewupgrades.init;
 
+import org.jspecify.annotations.NonNull;
+
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTabOutput;
@@ -15,8 +17,10 @@ import net.minecraft.world.level.ItemLike;
 import trnewupgrades.TechRebornNewUpgrades;
 
 public class TRNUItemGroup {
-    private static final ResourceKey<CreativeModeTab> ITEM_GROUP = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(TechRebornNewUpgrades.MOD_ID, "item_group"));
+	@SuppressWarnings("null")
+    private static final @NonNull ResourceKey<@NonNull CreativeModeTab> ITEM_GROUP = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(TechRebornNewUpgrades.MOD_ID, "item_group"));
 
+	@SuppressWarnings("null")
     public static void register() {
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, ITEM_GROUP, FabricCreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.trnewupgrades.item_group"))
@@ -26,12 +30,12 @@ public class TRNUItemGroup {
         CreativeModeTabEvents.modifyOutputEvent(ITEM_GROUP).register(TRNUItemGroup::entries);
     }
 
-    private static void entries(FabricCreativeModeTabOutput entries) {
+    private static void entries(@NonNull FabricCreativeModeTabOutput entries) {
         addContent(TRNUContent.Upgrades.values(), entries);
     }
 
-    private static void addContent(ItemLike[] items, FabricCreativeModeTabOutput entries) {
-        for (ItemLike item : items) {
+    private static void addContent(@NonNull ItemLike[] items, @NonNull FabricCreativeModeTabOutput entries) {
+        for (@NonNull ItemLike item : items) {
             entries.accept(item);
         }
     }

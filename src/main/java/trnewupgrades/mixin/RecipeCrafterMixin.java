@@ -2,6 +2,7 @@ package trnewupgrades.mixin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import net.minecraft.world.item.ItemStack;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.Level;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.crafting.RecipeUtils;
@@ -151,7 +153,10 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         if (!isProcessingStack()) {
             return 1;
         }
-        final List<ItemStack> outputs = recipe.outputs().stream().map(ItemStackTemplate::create).toList();
+        final List<ItemStack> outputs = new ArrayList<>();
+        for (ItemStackTemplate template : recipe.outputs()) {
+            outputs.add(template.create());
+        }
         if (!isItemRecipe(outputs)) {
             return 1;
         }
@@ -255,7 +260,15 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
      */
     @Overwrite(remap = false)
     public void updateCurrentRecipe() {
-        for (RebornRecipe recipe : RecipeUtils.getRecipes(blockEntity.getLevel(), recipeType)) {
+        BlockEntity currentBlockEntity = Objects.requireNonNull(blockEntity);
+        Level level = currentBlockEntity.getLevel();
+        if (level == null) {
+            resetCrafter();
+            return;
+        }
+
+        RecipeType<? extends RebornRecipe> currentRecipeType = Objects.requireNonNull(recipeType);
+        for (RebornRecipe recipe : RecipeUtils.getRecipes(level, currentRecipeType)) {
             if (!isValidRecipe(recipe)) continue;
 
             // Reset progress if recipe changed
@@ -323,17 +336,21 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
      */
     @Overwrite(remap = false)
     protected void completeCraft() {
-        final List<ItemStack> outputs = currentRecipe.outputs().stream().map(ItemStackTemplate::create).toList();
+        final List<ItemStack> outputs = new ArrayList<>();
+        for (ItemStackTemplate template : currentRecipe.outputs()) {
+            outputs.add(template.create());
+        }
         // Use the pre-calculated craftsPerOperation from updateCurrentRecipe.
         // Do NOT re-evaluate here; the processingStack flag may have transient state.
         int craftsThisOperation = Math.max(craftsPerOperation, 1);
         int crafted = 0;
+        BlockEntity currentBlockEntity = Objects.requireNonNull(blockEntity);
         for (int i = 0; i < craftsThisOperation; i++) {
             if (!hasAllInputs(currentRecipe) || !canFitAllOutputs(outputs)) {
                 break;
             }
             // Check machine-specific on craft logic for each craft operation.
-            if (!currentRecipe.onCraft(blockEntity)) {
+            if (!currentRecipe.onCraft(currentBlockEntity)) {
                 break;
             }
             insertOutputs(outputs);

@@ -81,9 +81,9 @@ public class TRNUContent {
         });
 
         public final String name;
-        public final Item item;
+        public final @NonNull Item item;
 
-        Upgrades(IUpgrade upgrade) {
+        Upgrades(@NonNull IUpgrade upgrade) {
             name = this.toString().toLowerCase(Locale.ROOT);
             item = new UpgradeItem(name + "_upgrade", upgrade);
             InitUtil.setup(item, name + "_upgrade");

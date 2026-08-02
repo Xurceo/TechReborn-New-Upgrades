@@ -5,6 +5,8 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
+import org.jspecify.annotations.NonNull;
+
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -17,14 +19,14 @@ import trnewupgrades.item.UpgradeItem;
 
 public class StackToolTipHandler implements ItemTooltipCallback {
 
-	public static final Map<Item, Boolean> ITEM_ID = Maps.newHashMap();
+    public static final Map<@NonNull Item, Boolean> ITEM_ID = Maps.newHashMap();
 
     public static void setup() {
         ItemTooltipCallback.EVENT.register(new StackToolTipHandler());
     }
 
-
-    public void getTooltip(ItemStack stack, Item.TooltipContext tooltipContext, TooltipFlag tooltipType, List<Component> lines) {
+    @Override
+    public void getTooltip(@NonNull ItemStack stack, Item.@NonNull TooltipContext tooltipContext, @NonNull TooltipFlag tooltipType, @NonNull List<Component> lines) {
         Item item = stack.getItem();
 
         Minecraft mc = Minecraft.getInstance();
@@ -40,7 +42,7 @@ public class StackToolTipHandler implements ItemTooltipCallback {
 		}
     }
 
-    private static boolean isTRNUItem(Item item) {
+    private static boolean isTRNUItem(@NonNull Item item) {
 		return BuiltInRegistries.ITEM.getKey(item).getNamespace().equals("trnewupgrades");
 	}
 }

@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.locale.Language;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.TRContent;
@@ -61,7 +62,7 @@ public class ToolTipAssistUtils {
     public static void addInfo(String inKey, List<Component> list, boolean hidden) {
 		String key = ("trnewupgrades.message.info." + inKey);
 
-		if (I18n.exists(key)) {
+		if (Language.getInstance().has(key)) {
 			if (!hidden || Minecraft.getInstance().hasShiftDown()) {
 				String info = I18n.get(key);
 				List<MutableComponent> infoLines = Arrays.stream(info.split("\\r?\\n"))

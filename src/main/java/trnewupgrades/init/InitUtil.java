@@ -1,21 +1,23 @@
 package trnewupgrades.init;
 
 import java.util.HashMap;
+import java.util.Objects;
+
+import org.jspecify.annotations.NonNull;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import org.apache.commons.lang3.Validate;
 import trnewupgrades.TechRebornNewUpgrades;
 import net.minecraft.util.Util;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class InitUtil {
 
-    private static final HashMap<Object, Identifier> objIdentMap = new HashMap<>();
+    private static final HashMap<@NonNull Object, @NonNull Identifier> objIdentMap = new HashMap<>();
 
-    public static <I extends Item> I setup(I item, String name) {
+	public static <I extends @NonNull Item> @NonNull I setup(@NonNull I item, @NonNull String name) {
 		Identifier identifier = Identifier.fromNamespaceAndPath(TechRebornNewUpgrades.MOD_ID, name);
 		registerIdent(item, identifier);
 
@@ -37,16 +39,17 @@ public class InitUtil {
 		return item;
 	}
 
-    public static void registerIdent(Object object, Identifier identifier){
+    public static void registerIdent(@NonNull Object object, @NonNull Identifier identifier){
 		objIdentMap.put(object, identifier);
 	}
 
-	public static void registerItem(Item item) {
-		Validate.isTrue(objIdentMap.containsKey(item));
-		registerItem(item, (Identifier)objIdentMap.get(item));
+	public static void registerItem(@NonNull Item item) {
+		Identifier identifier = Objects.requireNonNull(objIdentMap.get(item), "Missing identifier for item: " + item);
+		registerItem(item, identifier);
 	}
 
-	public static void registerItem(Item item, Identifier name) {
+	@SuppressWarnings("null")
+	public static void registerItem(@NonNull Item item, @NonNull Identifier name) {
 		Registry.register(BuiltInRegistries.ITEM, name, item);
 	}
 }

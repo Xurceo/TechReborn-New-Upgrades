@@ -13,22 +13,22 @@ import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.recipes.IUpgradeHandler;
 
 public class UpgradeItem extends Item implements IUpgrade {
-   public final IUpgrade behavior;
+   public final @NonNull IUpgrade behavior;
 
-   public UpgradeItem(String name, IUpgrade process) {
+   public UpgradeItem(@NonNull String name, @NonNull IUpgrade process) {
       super(item(name).stacksTo(16));
       this.behavior = process;
    }
 
-   public void process(MachineBaseBlockEntity blockEntity, @Nullable IUpgradeHandler handler, @NonNull ItemStack stack) {
+   public void process(@NonNull MachineBaseBlockEntity blockEntity, @Nullable IUpgradeHandler handler, @NonNull ItemStack stack) {
       this.behavior.process(blockEntity, handler, stack);
    }
 
-   public static ResourceKey<Item> key(String name) {
+   public static @NonNull ResourceKey<Item> key(@NonNull String name) {
       return ResourceKey.create(BuiltInRegistries.ITEM.key(), Identifier.fromNamespaceAndPath("trnewupgrades", name));
    }
 
-   public static Item.Properties item(String name) {
+   public static Item.@NonNull Properties item(@NonNull String name) {
       return (new Item.Properties()).setId(key(name));
    }
 
