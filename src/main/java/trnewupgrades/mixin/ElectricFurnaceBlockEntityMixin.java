@@ -1,7 +1,7 @@
 package trnewupgrades.mixin;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.codec.ByteBufCodecs;
+import reborncore.common.screen.builder.SyncedObjectTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.SmeltingRecipe;
@@ -320,8 +320,8 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		ElectricFurnaceBlockEntity furnace = (ElectricFurnaceBlockEntity) (Object) this;
 		return new ScreenHandlerBuilder("electricfurnace").player(player.getInventory()).inventory().hotbar().addInventory()
 				.blockEntity(furnace).slot(0, 55, 45).outputSlot(1, 101, 45).energySlot(2, 8, 72).syncEnergyValue()
-				.sync(ByteBufCodecs.INT, furnace::getCookTime, furnace::setCookTime)
-				.sync(ByteBufCodecs.INT, furnace::getCookTimeTotal, furnace::setCookTimeTotal)
+				.sync(SyncedObjectTypes.INT, furnace::getCookTime, furnace::setCookTime)
+				.sync(SyncedObjectTypes.INT, furnace::getCookTimeTotal, furnace::setCookTimeTotal)
 				.addInventory().create(furnace, syncID);
 	}
 
