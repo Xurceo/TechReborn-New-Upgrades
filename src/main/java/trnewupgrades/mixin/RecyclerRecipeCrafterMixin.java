@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.recipes.RecipeCrafter;
-import reborncore.common.util.RebornInventory;
 import techreborn.recipe.RecyclerRecipeCrafter;
 import trnewupgrades.api.ProcessingStackAccessor;
 import trnewupgrades.util.UpgradeUtils;
@@ -19,8 +18,8 @@ import trnewupgrades.util.UpgradeUtils;
  * <p>{@code RecyclerRecipeCrafter} overrides {@code updateCurrentRecipe} with
  * its own recipe selection that only computes the per-item time and never
  * computes {@code craftsPerOperation}. Because that override wins over the
- * stack-aware {@code updateCurrentRecipe} overwrite in {@code RecipeCrafterMixin},
- * the inherited {@code completeCraft} overwrite always saw a crafts-per-operation
+ * stack-aware {@code updateCurrentRecipe} wrapper in {@code RecipeCrafterMixin},
+ * the inherited {@code completeCraft} wrapper always saw a crafts-per-operation
  * of {@code 1}, so the recycler ignored the STACK upgrade entirely.</p>
  *
  * <p>This mixin recomputes {@code craftsPerOperation} from the actual input and
@@ -115,10 +114,6 @@ public abstract class RecyclerRecipeCrafterMixin {
 	@Inject(method = "updateCurrentRecipe", at = @At("TAIL"), remap = false)
 	private void trnu$applyStackProcessing(CallbackInfo ci) {
 		RecipeCrafter crafter = trnu$crafter();
-		if (crafter.currentRecipe == null) {
-			trnu$accessor().setCraftsPerOperation(1);
-			return;
-		}
 		if (!trnu$isProcessingStack()) {
 			// Keep the recipe time in sync when stack processing is off so a
 			// stale scaled value cannot linger after the STACK upgrade is removed.

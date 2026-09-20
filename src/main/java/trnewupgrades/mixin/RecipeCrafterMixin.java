@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -86,6 +88,9 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     public abstract void setCurrentRecipe(RebornRecipe recipe);
 
     @Shadow(remap = false)
+    protected abstract void resetCrafter();
+
+    @Shadow(remap = false)
     public abstract double getSpeedMultiplier();
 
     // Unique fields
@@ -130,13 +135,13 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
 
     /**
      * Resets crafter state and clears stack-processing bookkeeping.
+     *
+     * @param original the wrapped method call
      */
-    @Overwrite(remap = false)
-    protected void resetCrafter() {
-        currentTickTime = 0;
-        currentNeededTicks = 0;
+    @WrapMethod(method = "resetCrafter", remap = false)
+    protected void trnu$wrapResetCrafter(Operation<Void> original) {
+        original.call();
         craftsPerOperation = 1;
-        setCurrentRecipe(null);
     }
 
     @Unique
@@ -144,7 +149,7 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
 
     /**
      * Sets the precomputed crafts-per-operation value used by the
-     * {@code completeCraft} overwrite. Exposed so subclasses of
+     * {@code completeCraft} wrapper. Exposed so subclasses of
      * {@code RecipeCrafter} that override {@code updateCurrentRecipe}
      * (e.g. the recycler) can still drive stack processing.
      *
@@ -278,11 +283,13 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     }
 
     /**
-     * Overwrites recipe selection to cache crafts-per-operation and scale the
+     * Wraps recipe selection to cache crafts-per-operation and scale the
      * recipe duration for stack processing.
+     *
+     * @param original the wrapped method call
      */
-    @Overwrite(remap = false)
-    public void updateCurrentRecipe() {
+    @WrapMethod(method = "updateCurrentRecipe", remap = false)
+    public void trnu$wrapUpdateCurrentRecipe(Operation<Void> original) {
         BlockEntity currentBlockEntity = Objects.requireNonNull(blockEntity);
         Level level = currentBlockEntity.getLevel();
         if (level == null) {
@@ -354,11 +361,13 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     }
 
     /**
-     * Overwrites craft completion so multiple crafts can be completed atomically
+     * Wraps craft completion so multiple crafts can be completed atomically
      * using the precomputed stack count.
+     *
+     * @param original the wrapped method call
      */
-    @Overwrite(remap = false)
-    protected void completeCraft() {
+    @WrapMethod(method = "completeCraft", remap = false)
+    protected void trnu$wrapCompleteCraft(Operation<Void> original) {
         final List<ItemStack> outputs = new ArrayList<>();
         for (ItemStackTemplate template : currentRecipe.outputs()) {
             outputs.add(template.create());

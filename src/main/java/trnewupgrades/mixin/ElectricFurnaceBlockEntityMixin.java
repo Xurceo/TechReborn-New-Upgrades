@@ -1,8 +1,6 @@
 package trnewupgrades.mixin;
 
 import net.minecraft.core.BlockPos;
-import reborncore.common.screen.builder.SyncedObjectTypes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.SmeltingRecipe;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -10,7 +8,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,8 +16,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
-import reborncore.common.screen.BuiltScreenHandler;
-import reborncore.common.screen.builder.ScreenHandlerBuilder;
 import reborncore.common.util.RebornInventory;
 import techreborn.blockentity.machine.tier1.ElectricFurnaceBlockEntity;
 import trnewupgrades.api.ProcessingStackAccessor;
@@ -305,24 +300,6 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		if (trnu$activeScaledCookTimeTotal > 0 || trnu$isCurrentlyProcessingStack()) {
 			cir.setReturnValue(trnu$getCookTimeTotalForSync());
 		}
-	}
-
-	/**
-	 * Overwrites screen handler creation so the scaled cook-time values are
-	 * synced through the existing builder hooks.
-	 *
-	 * @param syncID screen sync id
-	 * @param player player opening the handler
-	 * @return the built screen handler
-	 */
-	@Overwrite(remap = false)
-	public BuiltScreenHandler createScreenHandler(int syncID, Player player) {
-		ElectricFurnaceBlockEntity furnace = (ElectricFurnaceBlockEntity) (Object) this;
-		return new ScreenHandlerBuilder("electricfurnace").player(player.getInventory()).inventory().hotbar().addInventory()
-				.blockEntity(furnace).slot(0, 55, 45).outputSlot(1, 101, 45).energySlot(2, 8, 72).syncEnergyValue()
-				.sync(SyncedObjectTypes.INT, furnace::getCookTime, furnace::setCookTime)
-				.sync(SyncedObjectTypes.INT, furnace::getCookTimeTotal, furnace::setCookTimeTotal)
-				.addInventory().create(furnace, syncID);
 	}
 
 	/**

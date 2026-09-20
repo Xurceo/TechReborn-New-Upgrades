@@ -25,10 +25,10 @@
     }
   ],
   "depends": {
-    "fabricloader": ">=0.19.2",
+    "fabricloader": ">=0.19.5",
     "minecraft": "~26.3",
     "java": ">=25",
-    "fabric-api": ">=0.159.1+26.3",
+    "fabric-api": ">=0.160.5+26.3",
     "techreborn": ">=6.2.0",
     "reborncore": ">=6.2.0"
   }
