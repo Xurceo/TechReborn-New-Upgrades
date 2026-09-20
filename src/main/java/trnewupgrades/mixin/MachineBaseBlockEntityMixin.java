@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.recipes.RecipeCrafter;
+import trnewupgrades.TechRebornNewUpgrades;
 import trnewupgrades.api.ProcessingStackAccessor;
 
 @Mixin(value = MachineBaseBlockEntity.class, remap = false)
@@ -30,6 +31,7 @@ public abstract class MachineBaseBlockEntityMixin implements ProcessingStackAcce
 	 */
 	@Inject(method = "resetUpgrades", at = @At("TAIL"), remap = false)
 	private void resetStackUpgradeState(CallbackInfo ci) {
+		TechRebornNewUpgrades.LOGGER.debug("resetUpgrades: clearing stack-processing flag");
 		resetProcessingStack();
 	}
 
@@ -38,7 +40,10 @@ public abstract class MachineBaseBlockEntityMixin implements ProcessingStackAcce
 	 */
 	@Inject(method = "afterUpgradesApplication", at = @At("TAIL"), remap = false)
 	private void refreshCrafterAfterUpgrades(CallbackInfo ci) {
-		getOptionalCrafter().ifPresent(crafter -> crafter.setInvDirty(true));
+		getOptionalCrafter().ifPresent(crafter -> {
+			TechRebornNewUpgrades.LOGGER.debug("refreshCrafterAfterUpgrades: marking crafter dirty");
+			crafter.setInvDirty(true);
+		});
 	}
 
 	/**
@@ -65,5 +70,10 @@ public abstract class MachineBaseBlockEntityMixin implements ProcessingStackAcce
 	 * @param value the new stack-processing state
 	 */
 	@Override
-	public void setProcessingStack(boolean value) { processingStack = value; }
+	public void setProcessingStack(boolean value) {
+		if (processingStack != value) {
+			TechRebornNewUpgrades.LOGGER.debug("setProcessingStack: {} -> {} (entity={})", processingStack, value, this);
+		}
+		processingStack = value;
+	}
 }

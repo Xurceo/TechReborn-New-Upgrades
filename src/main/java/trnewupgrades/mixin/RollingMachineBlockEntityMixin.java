@@ -19,6 +19,7 @@ import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.util.RebornInventory;
 import techreborn.blockentity.machine.tier1.RollingMachineBlockEntity;
 import techreborn.recipe.recipes.RollingMachineRecipe;
+import trnewupgrades.TechRebornNewUpgrades;
 import trnewupgrades.api.ProcessingStackAccessor;
 import trnewupgrades.util.UpgradeUtils;
 
@@ -29,7 +30,7 @@ import trnewupgrades.util.UpgradeUtils;
  */
 @Mixin(value = RollingMachineBlockEntity.class, remap = false)
 public abstract class RollingMachineBlockEntityMixin {
-    @Shadow
+@Shadow
     public RebornInventory<RollingMachineBlockEntity> inventory;
 
     @Shadow
@@ -143,6 +144,8 @@ public abstract class RollingMachineBlockEntityMixin {
         int maxByOutput = outputSpace / perCraftOutput;
 
         int crafts = Math.min(Math.min(maxByInput, maxByOutput), 64);
+        TechRebornNewUpgrades.LOGGER.debug("getStackCraftsPerOperation: maxByInput={} maxByOutput={} crafts={}",
+                maxByInput, maxByOutput, crafts);
         return Math.max(crafts, 1);
     }
 
@@ -164,12 +167,15 @@ public abstract class RollingMachineBlockEntityMixin {
         }
         int craftsPerOperation = trnu$getStackCraftsPerOperation();
         int scaledTime = baseTime * craftsPerOperation;
-        return switch (trnu$getLiveStackOverclockerTier()) {
+        int scaled = switch (trnu$getLiveStackOverclockerTier()) {
             case 3 -> 1;
             case 2 -> Math.max(scaledTime / 10, 1);
             case 1 -> Math.max(scaledTime / 5, 1);
             default -> Math.max(scaledTime, 1);
         };
+        TechRebornNewUpgrades.LOGGER.debug("getScaledRecipeTime: base={} craftsPerOperation={} scaled={}",
+                baseTime, craftsPerOperation, scaled);
+        return scaled;
     }
 
     /**
@@ -337,6 +343,8 @@ public abstract class RollingMachineBlockEntityMixin {
         if (extraCrafts <= 0) {
             return;
         }
+        TechRebornNewUpgrades.LOGGER.debug("craftAdditionalOnStack: producedThisTick={} maxExtraByInput={} maxExtraByOutput={} extraCrafts={}",
+                producedThisTick, maxExtraByInput, maxExtraByOutput, extraCrafts);
 
         output.grow(trnu$outputPerCraftAtTickStart * extraCrafts);
         for (int i = 0; i < crafting.getContainerSize(); i++) {

@@ -1,7 +1,6 @@
 package trnewupgrades.mixin;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.SmeltingRecipe;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -9,7 +8,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,17 +16,15 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
-import reborncore.common.screen.BuiltScreenHandler;
-import reborncore.common.screen.builder.ScreenHandlerBuilder;
 import reborncore.common.util.RebornInventory;
-import reborncore.common.screen.builder.SyncedObjectTypes;
 import techreborn.blockentity.machine.tier1.ElectricFurnaceBlockEntity;
+import trnewupgrades.TechRebornNewUpgrades;
 import trnewupgrades.api.ProcessingStackAccessor;
 import trnewupgrades.util.UpgradeUtils;
 
 @Mixin(value = ElectricFurnaceBlockEntity.class, remap = false)
 public abstract class ElectricFurnaceBlockEntityMixin {
-    
+
     // Shadowed fields and methods
 	@Shadow
 	public RebornInventory<ElectricFurnaceBlockEntity> inventory;
@@ -158,6 +154,8 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		int outputSpace = output.isEmpty() ? result.getMaxStackSize() : Math.max(result.getMaxStackSize() - output.getCount(), 0);
 		int maxByOutput = outputSpace / Math.max(result.getCount(), 1);
 		int craftsPerOp = Math.max(Math.min(Math.min(maxByInput, maxByOutput), 64), 1);
+		TechRebornNewUpgrades.LOGGER.debug("getStackCraftsPerOperation: input={}x{} craftsPerOp={}",
+				input.getItem(), input.getCount(), craftsPerOp);
 		return craftsPerOp;
 	}
 
@@ -174,12 +172,15 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 			return baseCookTimeTotal;
 		}
 		int craftsPerOperation = trnu$getStackCraftsPerOperation();
-		return switch (trnu$getLiveStackOverclockerTier()) {
+		int scaled = switch (trnu$getLiveStackOverclockerTier()) {
 			case 3 -> 1;
 			case 2 -> Math.max((baseCookTimeTotal * craftsPerOperation) / 10, 1);
 			case 1 -> Math.max((baseCookTimeTotal * craftsPerOperation) / 5, 1);
 			default -> Math.max(baseCookTimeTotal * craftsPerOperation, 1);
 		};
+		TechRebornNewUpgrades.LOGGER.debug("getScaledCookTimeTotal: base={} craftsPerOperation={} scaled={}",
+				baseCookTimeTotal, craftsPerOperation, scaled);
+		return scaled;
 	}
 
 	/**
@@ -259,15 +260,15 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		trnu$activeScaledCookTimeTotal = 0;
 	}
 
-	/**
-	 * Captures tick-start state for the tail injection and UI sync.
-	 *
-	 * @param level current level instance
-	 * @param pos machine position
-	 * @param state machine block state
-	 * @param machineBase current machine base
-	 * @param ci callback from the tick injection
-	 */
+/**
+ * Captures tick-start state for the tail injection and UI sync.
+ *
+ * @param level current level instance
+ * @param pos machine position
+ * @param state machine block state
+ * @param machineBase current machine base
+ * @param ci callback from the tick injection
+ */
 	@Inject(method = "tick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lreborncore/common/blockentity/MachineBaseBlockEntity;)V", at = @At("HEAD"), remap = false)
 	private void trnu$captureTickState(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity machineBase, CallbackInfo ci) {
 		trnu$recipeAtTickStart = currentRecipe;
@@ -305,24 +306,6 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		if (trnu$activeScaledCookTimeTotal > 0 || trnu$isCurrentlyProcessingStack()) {
 			cir.setReturnValue(trnu$getCookTimeTotalForSync());
 		}
-	}
-
-	/**
-	 * Overwrites screen handler creation so the scaled cook-time values are
-	 * synced through the existing builder hooks.
-	 *
-	 * @param syncID screen sync id
-	 * @param player player opening the handler
-	 * @return the built screen handler
-	 */
-	@Overwrite(remap = false)
-	public BuiltScreenHandler createScreenHandler(int syncID, Player player) {
-		ElectricFurnaceBlockEntity furnace = (ElectricFurnaceBlockEntity) (Object) this;
-		return new ScreenHandlerBuilder("electricfurnace").player(player.getInventory()).inventory().hotbar().addInventory()
-				.blockEntity(furnace).slot(0, 55, 45).outputSlot(1, 101, 45).energySlot(2, 8, 72).syncEnergyValue()
-				.sync(SyncedObjectTypes.INT, furnace::getCookTime, furnace::setCookTime)
-				.sync(SyncedObjectTypes.INT, furnace::getCookTimeTotal, furnace::setCookTimeTotal)
-				.addInventory().create(furnace, syncID);
 	}
 
 	/**
@@ -368,6 +351,7 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		if (producedThisTick <= 0) {
 			return;
 		}
+		TechRebornNewUpgrades.LOGGER.debug("craftAdditionalOnStack: furnace={} producedThisTick={}", this, producedThisTick);
 
 		ItemStack input = inventory.getItem(inputSlot);
 		int maxExtraByInput = Math.min(input.getCount(), 63);
@@ -375,11 +359,15 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 			return;
 		}
 
+		int extraCrafts = 0;
 		for (int i = 0; i < maxExtraByInput; i++) {
 			if (!hasAllInputs(trnu$recipeAtTickStart) || !canAcceptOutput(trnu$recipeAtTickStart, 1)) {
 				break;
 			}
 			craftRecipe(trnu$recipeAtTickStart);
-        }
-    }
+			extraCrafts++;
+		}
+		TechRebornNewUpgrades.LOGGER.debug("craftAdditionalOnStack: furnace={} maxExtraByInput={} extraCrafts={}",
+				this, maxExtraByInput, extraCrafts);
+	}
 }

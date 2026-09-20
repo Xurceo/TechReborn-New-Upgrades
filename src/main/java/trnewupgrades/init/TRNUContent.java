@@ -47,6 +47,7 @@ public class TRNUContent {
             }
             if (powerAcceptor != null) {
                 powerAcceptor.extraPowerInput += powerAcceptor.getMaxInput(null);
+                powerAcceptor.extraPowerStorage += powerAcceptor.getBaseMaxPower() * 40;
             }
         }),
         TRANSFORMERMK2((blockEntity, handler, stack) -> {

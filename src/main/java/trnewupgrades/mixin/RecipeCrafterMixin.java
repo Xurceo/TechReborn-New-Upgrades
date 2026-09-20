@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import org.jspecify.annotations.NonNull;
@@ -23,12 +25,13 @@ import reborncore.common.recipes.IUpgradeHandler;
 import reborncore.common.recipes.RecipeCrafter;
 import reborncore.common.util.ItemUtils;
 import reborncore.common.util.RebornInventory;
+import trnewupgrades.TechRebornNewUpgrades;
 import trnewupgrades.api.ProcessingStackAccessor;
 import trnewupgrades.util.UpgradeUtils;
 
 @Mixin(value = RecipeCrafter.class, remap = false)
 public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
-    /**
+/**
      * Mixin for RecipeCrafter: adds processing-stack behavior, computes
      * `craftsPerOperation` at recipe selection, and ensures `completeCraft`
      * uses the precomputed value to avoid races.
@@ -88,6 +91,9 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     @Shadow(remap = false)
     public abstract double getSpeedMultiplier();
 
+    @Shadow(remap = false)
+    protected abstract void resetCrafter();
+
     // Unique fields
     @Unique
     private boolean processingStack = false;
@@ -131,12 +137,10 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     /**
      * Resets crafter state and clears stack-processing bookkeeping.
      */
-    @Overwrite(remap = false)
-    protected void resetCrafter() {
-        currentTickTime = 0;
-        currentNeededTicks = 0;
+    @WrapMethod(method = "resetCrafter", remap = false)
+    private void trnu$wrapResetCrafter(Operation<Void> original) {
+        original.call();
         craftsPerOperation = 1;
-        setCurrentRecipe(null);
     }
 
     @Unique
@@ -166,8 +170,11 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         if (!isProcessingStack()) {
             // Also allow stack-processing when a STACK upgrade is physically present
             // in the machine's upgrade inventory even if the local flag wasn't set.
-            if (!(blockEntity instanceof MachineBaseBlockEntity machineBase)
-                    || !UpgradeUtils.hasStackUpgrade(machineBase.getUpgradeInventory())) {
+            boolean hasStackUpgrade = blockEntity instanceof MachineBaseBlockEntity machineBase
+                    && UpgradeUtils.hasStackUpgrade(machineBase.getUpgradeInventory());
+            if (!hasStackUpgrade) {
+                TechRebornNewUpgrades.LOGGER.debug("calculateCraftsPerOperation: craft=1, stack processing inactive (stackUpgrade={})",
+                        hasStackUpgrade);
                 return 1;
             }
         }
@@ -229,6 +236,8 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         }
 
         int crafts = Math.min(Math.min(maxCraftsByInput, maxCraftsByOutput), 64);
+        TechRebornNewUpgrades.LOGGER.debug("calculateCraftsPerOperation: recipe={} inputLimit={} outputLimit={} crafts={}",
+                recipe.getType(), maxCraftsByInput, maxCraftsByOutput, crafts);
         return Math.max(crafts, 1);
     }
 
@@ -278,11 +287,11 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     }
 
     /**
-     * Overwrites recipe selection to cache crafts-per-operation and scale the
+     * Replaces recipe selection to cache crafts-per-operation and scale the
      * recipe duration for stack processing.
      */
-    @Overwrite(remap = false)
-    public void updateCurrentRecipe() {
+    @WrapMethod(method = "updateCurrentRecipe", remap = false)
+    public void trnu$wrapUpdateCurrentRecipe(Operation<Void> original) {
         BlockEntity currentBlockEntity = Objects.requireNonNull(blockEntity);
         Level level = currentBlockEntity.getLevel();
         if (level == null) {
@@ -313,6 +322,8 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
             } else {
                 this.currentNeededTicks = baseNeededTicks * craftsPerOperation;
             }
+            TechRebornNewUpgrades.LOGGER.debug("updateCurrentRecipe: recipe={} craftsPerOperation={} stackTier={} neededTicks={}",
+                    recipe.getType(), craftsPerOperation, stackTier, this.currentNeededTicks);
             return;
         }
 
@@ -354,11 +365,15 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
     }
 
     /**
-     * Overwrites craft completion so multiple crafts can be completed atomically
+     * Replaces craft completion so multiple crafts can be completed atomically
      * using the precomputed stack count.
      */
-    @Overwrite(remap = false)
-    protected void completeCraft() {
+    @WrapMethod(method = "completeCraft", remap = false)
+    protected void trnu$wrapCompleteCraft(Operation<Void> original) {
+        if (currentRecipe == null) {
+            TechRebornNewUpgrades.LOGGER.error("completeCraft: currentRecipe is null, nothing to craft");
+            return;
+        }
         final List<ItemStack> outputs = new ArrayList<>();
         for (ItemStackTemplate template : currentRecipe.outputs()) {
             outputs.add(template.create());
@@ -366,14 +381,17 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         // Use the pre-calculated craftsPerOperation from updateCurrentRecipe.
         // Do NOT re-evaluate here; the processingStack flag may have transient state.
         int craftsThisOperation = Math.max(craftsPerOperation, 1);
+        TechRebornNewUpgrades.LOGGER.debug("completeCraft: recipe={} craftsPerOperation={}", currentRecipe.getType(), craftsThisOperation);
         int crafted = 0;
         BlockEntity currentBlockEntity = Objects.requireNonNull(blockEntity);
         for (int i = 0; i < craftsThisOperation; i++) {
             if (!hasAllInputs(currentRecipe) || !canFitAllOutputs(outputs)) {
+                TechRebornNewUpgrades.LOGGER.debug("completeCraft: stopped at {}/{} (input or output space exhausted)", crafted, craftsThisOperation);
                 break;
             }
             // Check machine-specific on craft logic for each craft operation.
             if (!currentRecipe.onCraft(currentBlockEntity)) {
+                TechRebornNewUpgrades.LOGGER.debug("completeCraft: stopped at {}/{} (onCraft refused)", crafted, craftsThisOperation);
                 break;
             }
             insertOutputs(outputs);
@@ -384,6 +402,7 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
         if (crafted == 0) {
             return;
         }
+        TechRebornNewUpgrades.LOGGER.debug("completeCraft: crafted {}/{}", crafted, craftsThisOperation);
         currentTickTime = 0;
     }
 }

@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.recipes.RecipeCrafter;
-import reborncore.common.util.RebornInventory;
 import techreborn.recipe.RecyclerRecipeCrafter;
+import trnewupgrades.TechRebornNewUpgrades;
 import trnewupgrades.api.ProcessingStackAccessor;
 import trnewupgrades.util.UpgradeUtils;
 
@@ -19,8 +19,8 @@ import trnewupgrades.util.UpgradeUtils;
  * <p>{@code RecyclerRecipeCrafter} overrides {@code updateCurrentRecipe} with
  * its own recipe selection that only computes the per-item time and never
  * computes {@code craftsPerOperation}. Because that override wins over the
- * stack-aware {@code updateCurrentRecipe} overwrite in {@code RecipeCrafterMixin},
- * the inherited {@code completeCraft} overwrite always saw a crafts-per-operation
+ * stack-aware {@code updateCurrentRecipe} wrapper in {@code RecipeCrafterMixin},
+ * the inherited {@code completeCraft} wrapper always saw a crafts-per-operation
  * of {@code 1}, so the recycler ignored the STACK upgrade entirely.</p>
  *
  * <p>This mixin recomputes {@code craftsPerOperation} from the actual input and
@@ -110,35 +110,37 @@ public abstract class RecyclerRecipeCrafterMixin {
 	 * Computes the stack batch size and scaled recipe time after the recycler's
 	 * own recipe selection runs.
 	 *
+	 * <p>This handler runs at {@code @At("TAIL")}, which in the base 6.1.1
+	 * {@code updateCurrentRecipe} only fires on the method's final return. On
+	 * every path that reaches the tail a valid {@code currentRecipe} has been
+	 * selected, so no null guard is needed here — the early returns that leave
+	 * the recipe unset exit before this injection point.</p>
+	 *
 	 * @param ci callback from the recipe update injection
 	 */
 	@Inject(method = "updateCurrentRecipe", at = @At("TAIL"), remap = false)
 	private void trnu$applyStackProcessing(CallbackInfo ci) {
 		RecipeCrafter crafter = trnu$crafter();
-		if (crafter.currentRecipe == null) {
-			trnu$accessor().setCraftsPerOperation(1);
-			return;
-		}
-		if (!trnu$isProcessingStack()) {
-			// Keep the recipe time in sync when stack processing is off so a
-			// stale scaled value cannot linger after the STACK upgrade is removed.
-			trnu$accessor().setCraftsPerOperation(1);
-			crafter.currentNeededTicks = Math.max((int) (crafter.currentRecipe.time() * (1.0 - crafter.getSpeedMultiplier())), 1);
-			return;
-		}
+		boolean processingStack = trnu$isProcessingStack();
 
-		int craftsPerOperation = trnu$getCraftsPerOperation();
-		trnu$accessor().setCraftsPerOperation(craftsPerOperation);
 		int baseNeededTicks = Math.max((int) (crafter.currentRecipe.time() * (1.0 - crafter.getSpeedMultiplier())), 1);
+		int craftsPerOperation = processingStack ? trnu$getCraftsPerOperation() : 1;
+		trnu$accessor().setCraftsPerOperation(craftsPerOperation);
+
 		int stackTier = trnu$getOverclockerTier();
-		if (stackTier >= 3) {
+		if (processingStack && stackTier >= 3) {
 			crafter.currentNeededTicks = 1;
-		} else if (stackTier == 2) {
+		} else if (processingStack && stackTier == 2) {
 			crafter.currentNeededTicks = Math.max((baseNeededTicks * craftsPerOperation) / 10, 1);
-		} else if (stackTier == 1) {
+		} else if (processingStack && stackTier == 1) {
 			crafter.currentNeededTicks = Math.max((baseNeededTicks * craftsPerOperation) / 5, 1);
 		} else {
+			// Always keep the recipe time in sync, including when stack
+			// processing is off, so a stale scaled value cannot linger after
+			// the STACK upgrade is removed.
 			crafter.currentNeededTicks = baseNeededTicks * craftsPerOperation;
 		}
+		TechRebornNewUpgrades.LOGGER.debug("applyStackProcessing: recipe={} craftsPerOperation={} stackTier={} currentNeededTicks={}",
+				crafter.currentRecipe.getType(), craftsPerOperation, stackTier, crafter.currentNeededTicks);
 	}
 }

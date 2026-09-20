@@ -81,7 +81,8 @@ tasks.named("runClient", JavaExec).configure {
 	jvmArgs(
 		"-Dmixin.debug.export=true",
 		"-Dmixin.debug.verbose=true",
-		"-Dmixin.dumpTargetOnFailure=true"
+		"-Dmixin.dumpTargetOnFailure=true",
+		"-Dlog4j2.logger.trnewupgrades.level=DEBUG"
 	)
 }
 
