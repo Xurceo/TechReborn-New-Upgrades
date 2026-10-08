@@ -36,31 +36,12 @@ jobs:
       - name: Build
         run: ./gradlew build
 
-      - name: Publish to CurseForge + Modrinth
+      - name: Publish (CurseForge + Modrinth + GitHub)
         run: |
-          export MOD_CHANGELOG="$(cat release_notes.md)"
+          export CHANGELOG="$(cat release_notes.md)"
           ./gradlew publishMods
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_CHANNEL: ${{ inputs.channel }}
-
-      - name: GitHub Release
-        run: |
-          TAG="v${{ steps.meta.outputs.version }}"
-          FLAGS=""
-          if [ "${{ inputs.channel }}" != "release" ]; then FLAGS="--prerelease"; fi
-
-          gh release create "$TAG" build/libs/*.jar \
-            --title "$TAG" \
-            --notes-file release_notes.md \
-            --target "$GITHUB_SHA" \
-            $FLAGS
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Artifacts
-          path: build/libs/
