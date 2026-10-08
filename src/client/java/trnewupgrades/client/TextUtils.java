@@ -4,6 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
+import org.jspecify.annotations.NonNull;
 
 public final class TextUtils {
     private static final int[] OMNI_COLORS = new int[] {
@@ -16,9 +17,9 @@ public final class TextUtils {
     private TextUtils() {
     }
 
-    public static MutableComponent makeOmni(String input) {
+    public static @NonNull MutableComponent makeOmni(@NonNull String input) {
         MutableComponent result = Component.empty();
-        if (input == null || input.isEmpty()) {
+        if (input.isEmpty()) {
             return result;
         }
 
@@ -30,8 +31,14 @@ public final class TextUtils {
             double phase = ((cycle + pos) % 1.0D + 1.0D) % 1.0D;
             double pingPong = phase < 0.5D ? phase * 2.0D : (1.0D - phase) * 2.0D;
             int color = colorAtPingPong(pingPong);
+            String character = Character.toString(input.charAt(i));
 
-            result.append(Component.literal(String.valueOf(input.charAt(i)))
+            if (character.equals(" ")) {
+                result.append(Component.literal(character));
+                continue;
+            }
+            
+            result.append(Component.literal(character)
                     .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(color))));
         }
 
