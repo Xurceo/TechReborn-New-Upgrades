@@ -137,6 +137,7 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		if (!trnu$isStackProcessingActive()) {
 			return 1;
 		}
+		int craftsLimit = UpgradeUtils.getStackCraftsPerOperation(trnu$getMachineBase().getUpgradeInventory());
 		// Use the currentRecipe when calculating crafts-per-operation. Sometimes
 		// updateCurrentRecipe() runs outside of the tick context, so relying on
 		// the tick-start cached recipe (trnu$recipeAtTickStart) can be null.
@@ -152,7 +153,7 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		ItemStack result = currentRecipe.assemble(new SingleRecipeInput(inventory.getItem(inputSlot)));
 		int outputSpace = output.isEmpty() ? result.getMaxStackSize() : Math.max(result.getMaxStackSize() - output.getCount(), 0);
 		int maxByOutput = outputSpace / Math.max(result.getCount(), 1);
-		int craftsPerOp = Math.max(Math.min(Math.min(maxByInput, maxByOutput), 64), 1);
+		int craftsPerOp = Math.max(Math.min(Math.min(maxByInput, maxByOutput), craftsLimit), 1);
 		return craftsPerOp;
 	}
 
@@ -347,7 +348,10 @@ public abstract class ElectricFurnaceBlockEntityMixin {
 		}
 
 		ItemStack input = inventory.getItem(inputSlot);
-		int maxExtraByInput = Math.min(input.getCount(), 63);
+		int maxExtraByInput = Math.min(
+				input.getCount(),
+				Math.max(UpgradeUtils.getStackCraftsPerOperation(trnu$getMachineBase().getUpgradeInventory()) - 1, 0)
+		);
 		if (maxExtraByInput <= 0) {
 			return;
 		}

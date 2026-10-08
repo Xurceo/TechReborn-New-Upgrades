@@ -1,17 +1,14 @@
 {
-    "type": "minecraft:crafting_shaped",
-    "group": "overclockermk3_upgrade",
-    "pattern": [
-        " O ",
-        "CAC",
-        " O "
-    ],
-    "key": {
-        "O": "trnewupgrades:overclockermk2_upgrade",
-        "C": "techreborn:insulated_hv_cable",
-        "A": "techreborn:data_storage_chip"
-    },
-    "result": {
-        "id": "trnewupgrades:overclockermk3_upgrade"
-    }
+  "type": "minecraft:crafting_shaped",
+  "group": "overclockermk3_upgrade",
+  "pattern": ["EOE", "SHS", "EOE"],
+  "key": {
+    "O": "trnewupgrades:overclockermk2_upgrade",
+    "S": "techreborn:superconductor",
+    "H": "techreborn:helium_coolant_cell_360k",
+    "E": "techreborn:energy_flow_chip"
+  },
+  "result": {
+    "id": "trnewupgrades:overclockermk3_upgrade"
+  }
 }

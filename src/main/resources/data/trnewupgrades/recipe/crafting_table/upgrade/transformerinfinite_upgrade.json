@@ -1,17 +1,14 @@
 {
-    "type": "minecraft:crafting_shaped",
-    "group": "transformerinfinite_upgrade",
-    "pattern": [
-        " T ",
-        "CDC",
-        " T "
-    ],
-    "key": {
-        "T": "trnewupgrades:transformermk2_upgrade",
-        "D": "techreborn:data_storage_core",
-        "C": "techreborn:superconductor_cable"
-    },
-    "result": {
-        "id": "trnewupgrades:transformerinfinite_upgrade"
-    }
+  "type": "minecraft:crafting_shaped",
+  "group": "transformerinfinite_upgrade",
+  "pattern": ["EOE", "SHS", "EOE"],
+  "key": {
+    "O": "trnewupgrades:transformermk2_upgrade",
+    "S": "techreborn:superconductor",
+    "H": "techreborn:helium_coolant_cell_360k",
+    "E": "techreborn:energy_flow_chip"
+  },
+  "result": {
+    "id": "trnewupgrades:transformerinfinite_upgrade"
+  }
 }

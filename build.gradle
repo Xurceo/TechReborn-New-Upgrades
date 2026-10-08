@@ -117,11 +117,11 @@ publishMods {
     version = project.version
 	type = providers.environmentVariable("RELEASE_CHANNEL").orElse("release").map {it == "release" ? STABLE : BETA }
     modLoaders.add("fabric")
-	dryRun = providers.environmentVariable("CURSEFORGE_API_KEY").getOrNull() == null
+	dryRun = providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
 
     def options = curseforgeOptions {
-        accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
-		minecraftVersions.add("26.3")
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+		minecraftVersions.add(project.minecraft_version)
 
         requires {
             slug = "fabric-api"
@@ -130,11 +130,15 @@ publishMods {
 		requires {
 			slug = "techreborn"
 		}
+
+		requires {
+			slug = "reborncore"
+		}
     }
 
     def mrOptions = modrinthOptions {
-        accessToken = providers.environmentVariable("MODRINTH_API_KEY")
-		minecraftVersions.add("26.3")
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+		minecraftVersions.add(project.minecraft_version)
 
         requires {
             slug = "fabric-api"
@@ -142,6 +146,10 @@ publishMods {
 
 		requires {
 			slug = "techreborn"
+		}
+
+		requires {
+			slug = "reborncore"
 		}
     }
 

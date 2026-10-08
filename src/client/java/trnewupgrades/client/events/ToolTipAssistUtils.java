@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.locale.Language;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
+import trnewupgrades.client.TextUtils;
 import trnewupgrades.config.TRNUConfig;
 import trnewupgrades.init.TRNUContent;
 
@@ -44,6 +45,7 @@ public class ToolTipAssistUtils {
 			case TRANSFORMERMK2 -> shouldStackCalculate = false;
 			case TRANSFORMERINFINITE -> shouldStackCalculate = false;
 			case STACK -> shouldStackCalculate = false;
+			case OMNI -> shouldStackCalculate = false;
 		}
 		// Add reminder that they can use shift to calculate the entire stack
 		if (shouldStackCalculate && !shiftHeld) {

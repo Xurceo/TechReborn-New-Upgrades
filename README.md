@@ -1,31 +1,59 @@
 # Tech Reborn New Upgrades
 
-An addon mod for Tech Reborn that adds new machine upgrades focused on speed, power tiers, and batch processing.
+Tech Reborn New Upgrades is a Fabric addon for Tech Reborn that expands machine customization with new upgrade tiers focused on speed, energy handling, and stack-based processing.
 
-## Added Upgrades
+## Included upgrades
 
-- Overclocker MK2 Upgrade
-	- Decreases crafting time at the cost of higher EU usage per tick.
-- Overclocker MK3 Upgrade
-	- Further decreases crafting time with an even higher EU cost per tick.
-- Transformer MK2 Upgrade
-	- Increases machine energy tier by 2.
-- Transformer MAX Upgrade
-	- Increases machine energy tier to INFINITE.
+- Overclocker MK2
+  - Increases processing speed while increasing power usage.
+- Overclocker MK3
+  - Further boosts speed and power draw for high-end machines.
+- Transformer MK2
+  - Raises machine energy tier by 2.
+- Transformer Infinite
+  - Pushes machine energy tier beyond normal bounds to effectively infinite-tier operation.
 - Stack Upgrade
-	- Processes up to a full stack in one operation while keeping normal per-item crafting time.
-	- Synergizes with overclocker upgrades. Base overclocker upgrade makes crafts 5x faster, overclocker MK2 makes 10x faster and overclocker MK3 makes crafts instant.
+  - Lets machines process multiple items per operation.
+  - Configurable default behavior: 16 items per operation.
+- Omni Upgrade
+  - Combines stack processing, Overclocker MK3 behavior, and Transformer Infinite power-tier scaling in one upgrade.
+  - Configurable default behavior: 64 items per operation.
 
-## Overview
+## Current behavior
 
-- Goal: expand Tech Reborn machine tuning beyond default upgrade limits.
-- Performance focus: choose between faster processing, higher power throughput, or stack-based operations.
+This mod is designed to let players choose between:
+
+- faster crafting loops
+- stronger power throughput
+- larger batch processing
+- combined late-game upgrade stacking for high-output machines
+
+The batch-processing values are configurable and can be tuned depending on your pack balance goals.
+
+## Installation
+
+1. Install Fabric Loader.
+2. Install Fabric API.
+3. Install Tech Reborn and RebornCore.
+4. Place the mod jar into your mods folder.
+5. Launch the game and enjoy the new upgrades.
+
+## Configuration
+
+The main balancing values live in the config class and are designed to be adjusted for pack balance:
+
+- Overclocker MK2 speed and power multipliers
+- Overclocker MK3 speed and power multipliers
+- Stack processing amount
+- Omni processing amount
 
 ## Credits
-- Some code adapted from [TechReborn](https://github.com/TechReborn/TechReborn) (MIT)
 
-## Support the Project
+- Code and design inspired by the Tech Reborn ecosystem.
+- Some logic is adapted from Tech Reborn and RebornCore usage patterns.
 
-If this mod helps your pack or server, you can support development here:
+## Support
+
+If this mod helps your pack or server, support the project here:
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/xurceo)

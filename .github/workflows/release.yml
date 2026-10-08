@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       channel:
-        description: 'Release channel'
+        description: "Release channel"
         required: true
-        default: 'release'
+        default: "release"
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -18,8 +18,8 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
-          java-version: '25'
+          distribution: "temurin"
+          java-version: "25"
       - uses: FabricMC/fabric-action-scripts@v2
         id: changelog
         with:
@@ -27,16 +27,12 @@ jobs:
           workflow_id: release.yml
       - name: Build
         run: ./gradlew build
-      - name: Publish to GitHub Packages
-        run: ./gradlew publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish to CurseForge + Modrinth
         run: ./gradlew publishMods
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
-          MODRINTH_TOKEN:   ${{ secrets.MODRINTH_TOKEN }}
-          MOD_CHANGELOG:    ${{ steps.changelog.outputs.changelog }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MOD_CHANGELOG: ${{ steps.changelog.outputs.changelog }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

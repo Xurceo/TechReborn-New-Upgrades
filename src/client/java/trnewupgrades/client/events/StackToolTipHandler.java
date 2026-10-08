@@ -12,8 +12,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import trnewupgrades.client.TextUtils;
 import trnewupgrades.init.TRNUContent;
 import trnewupgrades.item.UpgradeItem;
 
@@ -37,6 +39,9 @@ public class StackToolTipHandler implements ItemTooltipCallback {
 			return;
         
         if (item instanceof UpgradeItem upgrade) {
+            if (item == TRNUContent.Upgrades.OMNI.asItem()) {
+                lines.set(0, TextUtils.makeOmni(stack.getHoverName().getString()));
+            }
 			ToolTipAssistUtils.addInfo(item.getDescriptionId(), lines, false);
 			lines.addAll(ToolTipAssistUtils.getUpgradeStats(TRNUContent.Upgrades.fromItem(upgrade), stack.getCount(), mc.hasShiftDown()));
 		}

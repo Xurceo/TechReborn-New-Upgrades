@@ -6,4 +6,8 @@ public class TRNUConfig {
     public static double overclockermk2Power = 3;
     public static double overclockermk3Speed = 1;
     public static double overclockermk3Power = 15;
+
+    // Stack processing
+    public static int stackCraftsPerOperation = 16;
+    public static int omniCraftsPerOperation = 64;
 }

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "omni_upgrade",
+  "pattern": ["SOS", "ECE", "STS"],
+  "key": {
+    "S": "trnewupgrades:stack_upgrade",
+    "T": "trnewupgrades:transformerinfinite_upgrade",
+    "O": "trnewupgrades:overclockermk3_upgrade",
+    "C": "techreborn:computer_cube",
+    "E": "techreborn:ev_transformer"
+  },
+  "result": {
+    "id": "trnewupgrades:omni_upgrade"
+  }
+}

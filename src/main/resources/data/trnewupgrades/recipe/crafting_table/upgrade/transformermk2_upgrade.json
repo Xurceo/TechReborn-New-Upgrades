@@ -1,17 +1,13 @@
 {
-    "type": "minecraft:crafting_shaped",
-    "group": "transformermk2_upgrade",
-    "pattern": [
-        " T ",
-        "CAC",
-        " T "
-    ],
-    "key": {
-        "C": "techreborn:insulated_gold_cable",
-        "T": "techreborn:transformer_upgrade",
-        "A": "techreborn:advanced_circuit"
-    },
-    "result": {
-        "id": "trnewupgrades:transformermk2_upgrade"
-    }
+  "type": "minecraft:crafting_shaped",
+  "group": "transformermk2_upgrade",
+  "pattern": [" T ", "CIC", " T "],
+  "key": {
+    "C": "techreborn:glassfiber_cable",
+    "T": "techreborn:transformer_upgrade",
+    "I": "techreborn:industrial_circuit"
+  },
+  "result": {
+    "id": "trnewupgrades:transformermk2_upgrade"
+  }
 }

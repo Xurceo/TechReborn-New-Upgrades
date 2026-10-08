@@ -89,6 +89,9 @@ public abstract class RecyclerRecipeCrafterMixin {
 		if (crafter.inputSlots.length == 0 || crafter.outputSlots.length == 0) {
 			return 1;
 		}
+		int craftsLimit = crafter.blockEntity instanceof MachineBaseBlockEntity machineBase
+				? UpgradeUtils.getStackCraftsPerOperation(machineBase.getUpgradeInventory())
+				: 1;
 		ItemStack input = crafter.inventory.getItem(crafter.inputSlots[0]);
 		if (input.isEmpty()) {
 			return 1;
@@ -101,7 +104,7 @@ public abstract class RecyclerRecipeCrafterMixin {
 		} else {
 			maxByOutput = Math.max(64 - output.getCount(), 0);
 		}
-		int crafts = Math.min(Math.min(maxByInput, maxByOutput), 64);
+		int crafts = Math.min(Math.min(maxByInput, maxByOutput), craftsLimit);
 		return Math.max(crafts, 1);
 	}
 

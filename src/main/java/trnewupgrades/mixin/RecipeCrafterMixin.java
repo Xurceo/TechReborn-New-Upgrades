@@ -176,6 +176,9 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
                 return 1;
             }
         }
+        int craftsLimit = blockEntity instanceof MachineBaseBlockEntity machineBase
+                ? UpgradeUtils.getStackCraftsPerOperation(machineBase.getUpgradeInventory())
+                : 1;
         final List<ItemStack> outputs = new ArrayList<>();
         for (ItemStackTemplate template : recipe.outputs()) {
             outputs.add(template.create());
@@ -233,7 +236,7 @@ public abstract class RecipeCrafterMixin implements ProcessingStackAccessor {
             maxCraftsByOutput = 64;
         }
 
-        int crafts = Math.min(Math.min(maxCraftsByInput, maxCraftsByOutput), 64);
+        int crafts = Math.min(Math.min(maxCraftsByInput, maxCraftsByOutput), craftsLimit);
         return Math.max(crafts, 1);
     }
 

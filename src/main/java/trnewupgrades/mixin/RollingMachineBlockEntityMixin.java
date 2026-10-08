@@ -117,6 +117,9 @@ public abstract class RollingMachineBlockEntityMixin {
         if (currentRecipe == null || currentRecipeOutput.isEmpty()) {
             return 1;
         }
+        int craftsLimit = trnu$lastMachineBase != null
+                ? UpgradeUtils.getStackCraftsPerOperation(trnu$lastMachineBase.getUpgradeInventory())
+                : 1;
 
         TransientCraftingContainer crafting = getCraftingMatrix();
         int maxByInput = Integer.MAX_VALUE;
@@ -142,7 +145,7 @@ public abstract class RollingMachineBlockEntityMixin {
         int perCraftOutput = Math.max(currentRecipeOutput.getCount(), 1);
         int maxByOutput = outputSpace / perCraftOutput;
 
-        int crafts = Math.min(Math.min(maxByInput, maxByOutput), 64);
+        int crafts = Math.min(Math.min(maxByInput, maxByOutput), craftsLimit);
         return Math.max(crafts, 1);
     }
 

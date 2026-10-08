@@ -3,6 +3,7 @@ package trnewupgrades.util;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import trnewupgrades.init.TRNUContent;
+import trnewupgrades.config.TRNUConfig;
 
 public final class UpgradeUtils {
 
@@ -18,6 +19,7 @@ public final class UpgradeUtils {
         for (int i = 0; i < upgradeInventory.getContainerSize(); i++) {
             ItemStack stack = upgradeInventory.getItem(i);
             if (stack.isEmpty()) continue;
+            if (stack.getItem() == TRNUContent.Upgrades.OMNI.asItem()) return 3;
             if (stack.getItem() == TRNUContent.Upgrades.OVERCLOCKERMK3.asItem()) return 3;
             if (stack.getItem() == TRNUContent.Upgrades.OVERCLOCKERMK2.asItem()) {
                 tier = Math.max(tier, 2);
@@ -51,5 +53,30 @@ public final class UpgradeUtils {
             if (stack.getItem() == TRNUContent.Upgrades.STACK.asItem()) return true;
         }
         return false;
+    }
+
+    /**
+     * Checks whether the supplied upgrade inventory contains the OMNI upgrade.
+     */
+    public static boolean hasOmniUpgrade(Container upgradeInventory) {
+        for (int i = 0; i < upgradeInventory.getContainerSize(); i++) {
+            ItemStack stack = upgradeInventory.getItem(i);
+            if (stack.isEmpty()) continue;
+            if (stack.getItem() == TRNUContent.Upgrades.OMNI.asItem()) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Resolves the configured stack batch cap for the supplied upgrade inventory.
+     */
+    public static int getStackCraftsPerOperation(Container upgradeInventory) {
+        if (hasOmniUpgrade(upgradeInventory)) {
+            return TRNUConfig.omniCraftsPerOperation;
+        }
+        if (hasStackUpgrade(upgradeInventory)) {
+            return TRNUConfig.stackCraftsPerOperation;
+        }
+        return 1;
     }
 }

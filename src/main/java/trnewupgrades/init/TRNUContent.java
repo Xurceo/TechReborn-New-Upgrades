@@ -4,6 +4,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import org.jspecify.annotations.NonNull;
 import reborncore.api.recipe.IRecipeCrafterProvider;
+import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.powerSystem.PowerAcceptorBlockEntity;
 import reborncore.api.blockentity.IUpgrade;
 import reborncore.common.recipes.IUpgradeHandler;
@@ -36,19 +37,7 @@ public class TRNUContent {
             }
         }),
         OVERCLOCKERMK3((blockEntity, handler, stack) -> {
-            PowerAcceptorBlockEntity powerAcceptor = null;
-            if (blockEntity instanceof PowerAcceptorBlockEntity) {
-                powerAcceptor = (PowerAcceptorBlockEntity) blockEntity;
-            }
-            IUpgradeHandler targetHandler = resolveUpgradeTarget(blockEntity, handler);
-            if (targetHandler != null) {
-                addSpeedMultiplierCapped(targetHandler, TRNUConfig.overclockermk3Speed, 0.999999D);
-                targetHandler.addPowerMultiplier(TRNUConfig.overclockermk3Power);
-            }
-            if (powerAcceptor != null) {
-                powerAcceptor.extraPowerInput += powerAcceptor.getMaxInput(null);
-                powerAcceptor.extraPowerStorage += powerAcceptor.getBaseMaxPower() * 40;
-            }
+            applyOverclockerMk3(blockEntity, handler);
         }),
         TRANSFORMERMK2((blockEntity, handler, stack) -> {
             PowerAcceptorBlockEntity powerAcceptor = null;
@@ -69,22 +58,18 @@ public class TRNUContent {
             }
         }),
         STACK((blockEntity, handler, stack) -> {
-            PowerAcceptorBlockEntity powerAcceptor = null;
-            // Prefer resolving the recipe crafter upgrade handler so we can
-            // set the processing flag on the object that actually controls
-            // recipe execution. Fallback to the blockEntity itself.
-            IUpgradeHandler targetHandler = resolveUpgradeTarget(blockEntity, handler);
-            if (targetHandler instanceof ProcessingStackAccessor handlerAccessor) {
-                handlerAccessor.processStack();
-            } else if (blockEntity instanceof ProcessingStackAccessor accessor) {
-                accessor.processStack();
-            }
-            if (blockEntity instanceof PowerAcceptorBlockEntity) {
-                powerAcceptor = (PowerAcceptorBlockEntity) blockEntity;
-            }
+            PowerAcceptorBlockEntity powerAcceptor = blockEntity instanceof PowerAcceptorBlockEntity
+                ? (PowerAcceptorBlockEntity) blockEntity
+                : null;
+            applyStackProcessing(blockEntity, handler);
             if (powerAcceptor != null) {
                 powerAcceptor.extraPowerStorage += powerAcceptor.getBaseMaxPower() * 63;
             }
+        }),
+        OMNI((blockEntity, handler, stack) -> {
+            applyStackProcessing(blockEntity, handler);
+            applyOverclockerMk3(blockEntity, handler);
+            applyTransformerInfinite(blockEntity);
         });
 
         public final String name;
@@ -112,6 +97,56 @@ public class TRNUContent {
                 return;
             }
             handler.addSpeedMultiplier(Math.min(amount, remaining));
+        }
+
+        private static void applyOverclockerMk3(Object blockEntity, IUpgradeHandler handler) {
+            PowerAcceptorBlockEntity powerAcceptor = blockEntity instanceof PowerAcceptorBlockEntity
+                ? (PowerAcceptorBlockEntity) blockEntity
+                : null;
+            IUpgradeHandler targetHandler = resolveUpgradeTarget(blockEntity, handler);
+            if (targetHandler != null) {
+                addSpeedMultiplierCapped(targetHandler, TRNUConfig.overclockermk3Speed, 0.999999D);
+                targetHandler.addPowerMultiplier(TRNUConfig.overclockermk3Power);
+            }
+            if (powerAcceptor != null) {
+                powerAcceptor.extraPowerInput += powerAcceptor.getMaxInput(null);
+                powerAcceptor.extraPowerStorage += powerAcceptor.getBaseMaxPower() * 40;
+            }
+        }
+
+        private static void applyStackProcessing(Object blockEntity, IUpgradeHandler handler) {
+            // Prefer resolving the recipe crafter upgrade handler so we can
+            // set the processing flag on the object that actually controls
+            // recipe execution. Fallback to the blockEntity itself.
+            IUpgradeHandler targetHandler = resolveUpgradeTarget(blockEntity, handler);
+            if (targetHandler instanceof ProcessingStackAccessor handlerAccessor) {
+                handlerAccessor.processStack();
+            } else if (blockEntity instanceof ProcessingStackAccessor accessor) {
+                accessor.processStack();
+            }
+            if (targetHandler != null) {
+                targetHandler.addPowerMultiplier(resolveStackPowerMultiplier(blockEntity));
+            }
+        }
+
+        private static void applyTransformerInfinite(Object blockEntity) {
+            if (blockEntity instanceof PowerAcceptorBlockEntity powerAcceptor) {
+                powerAcceptor.extraTier += 10;
+                powerAcceptor.extraPowerStorage += powerAcceptor.getBaseMaxPower() * 63;
+                powerAcceptor.extraPowerInput += powerAcceptor.getMaxInput(null);
+            }
+        }
+
+        private static double resolveStackPowerMultiplier(Object blockEntity) {
+            if (blockEntity instanceof MachineBaseBlockEntity machineBase) {
+                if (trnewupgrades.util.UpgradeUtils.hasOmniUpgrade(machineBase.getUpgradeInventory())) {
+                    return TRNUConfig.omniCraftsPerOperation;
+                }
+                if (trnewupgrades.util.UpgradeUtils.hasStackUpgrade(machineBase.getUpgradeInventory())) {
+                    return TRNUConfig.stackCraftsPerOperation;
+                }
+            }
+            return 1.0D;
         }
 
         private static IUpgradeHandler resolveUpgradeTarget(Object blockEntity, IUpgradeHandler fallbackHandler) {
