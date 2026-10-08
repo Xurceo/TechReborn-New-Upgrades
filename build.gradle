@@ -155,7 +155,7 @@ publishMods {
 
 	curseforge("curseforgeTechRebornNewUpgrades") {
         from options
-        projectId = "237903"
+        projectId = "1523606"
         file = jar.archiveFile
 		displayName = "Tech Reborn New Upgrades ${project.version}"
     }
